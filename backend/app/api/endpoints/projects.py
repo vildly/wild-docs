@@ -6,6 +6,7 @@ from app.models.project import Project
 router = APIRouter()
 document_service = DocumentService()
 
+@router.get("", response_model=List[Project])
 @router.get("/", response_model=List[Project])
 async def list_projects():
     try:

@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 class Settings(BaseSettings):
     # API Settings
-    API_V1_STR: str = "/api/v1"
+    API_V1_STR: str = "/api"
     PROJECT_NAME: str = "Docs Agent API"
     PROJECT_URL: str = "http://localhost:3000"  # Required for OpenRouter
     

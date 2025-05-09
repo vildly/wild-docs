@@ -4,6 +4,9 @@ import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Base URL for the backend API (without /api prefix)
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
 interface Source {
     title: string;
     url: string;
@@ -34,7 +37,7 @@ export default function ChatInterface() {
         setError(null);
 
         try {
-            const res = await fetch('http://localhost:8000/api/v1/chat/query', {
+            const res = await fetch(`${API_BASE_URL}/api/chat/query`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

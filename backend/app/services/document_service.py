@@ -8,7 +8,7 @@ from app.core.config import settings
 import logging
 import uuid
 from agno.agent import Agent
-from agno.models.openrouter import OpenRouter
+from agno.models.openai import OpenAIChat
 from agno.vectordb.qdrant import Qdrant
 from agno.embedder.openai import OpenAIEmbedder
 from agno.document import Document
@@ -20,11 +20,10 @@ logger = logging.getLogger(__name__)
 class DocumentService:
     def __init__(self):
         try:
-            # Initialize OpenRouter model for the agent
-            self.model = OpenRouter(
-                base_url="https://api.openrouter.ai/api/v1",
-                api_key=settings.OPENROUTER_API_KEY,
-                id="anthropic/claude-3-haiku"
+            # Initialize OpenAI model for the agent
+            self.model = OpenAIChat(
+                api_key=settings.OPENAI_API_KEY,
+                id="gpt-4-turbo-preview"
             )
             
             # Initialize embedder

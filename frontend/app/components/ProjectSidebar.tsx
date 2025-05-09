@@ -10,6 +10,9 @@ interface Project {
     description: string;
 }
 
+// Base URL for the backend API (without /api prefix)
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
 export default function ProjectSidebar() {
     const [isOpen, setIsOpen] = useState(true);
     const [projects, setProjects] = useState<Project[]>([]);
@@ -19,7 +22,7 @@ export default function ProjectSidebar() {
 
     const fetchProjects = async () => {
         try {
-            const response = await fetch('http://localhost:8000/api/v1/projects');
+            const response = await fetch(`${API_BASE_URL}/api/projects`);
             if (!response.ok) {
                 throw new Error('Failed to fetch projects');
             }
@@ -38,7 +41,7 @@ export default function ProjectSidebar() {
 
     const handleAddProject = async (url: string) => {
         try {
-            const response = await fetch('http://localhost:8000/api/v1/documents/process-github', {
+            const response = await fetch(`${API_BASE_URL}/api/documents/process-github`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
