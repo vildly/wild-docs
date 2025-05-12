@@ -18,17 +18,20 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class DocumentService:
-    def __init__(self):
+    def __init__(self, api_key = None):
         try:
+
+            if api_key is None:
+                api_key = "sk.."
             # Initialize OpenAI model for the agent
             self.model = OpenAIChat(
-                api_key=settings.OPENAI_API_KEY,
+                api_key=api_key,
                 id="gpt-4-turbo-preview"
             )
             
             # Initialize embedder
             self.embedder = OpenAIEmbedder(
-                api_key=settings.OPENAI_API_KEY,
+                api_key=api_key,
                 id="text-embedding-3-small", 
                 dimensions=1536
             )

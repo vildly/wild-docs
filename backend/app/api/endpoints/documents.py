@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 from app.services.document_service import DocumentService
 from pydantic import BaseModel, HttpUrl
+from app.api.deps import get_openai_api_key
 
 router = APIRouter()
 document_service = DocumentService()
@@ -13,30 +14,40 @@ class ProcessResponse(BaseModel):
     success: bool
     message: str
 
-@router.post("/process-github", response_model=ProcessResponse)
-async def process_github_repo(request: GitHubRepoRequest):
-    """Process a GitHub repository's README.md"""
-    success = await document_service.process_github_repo(str(request.repo_url))
-    if success:
-        return ProcessResponse(
-            success=True,
-            message="Repository processed successfully"
-        )
-    raise HTTPException(
-        status_code=400,
-        detail="Failed to process repository"
-    )
+class ProcessGitHubRequest(BaseModel):
+    repo_url: str
 
-@router.post("/process-multiple", response_model=List[ProcessResponse])
-async def process_multiple_repos(repos: List[GitHubRepoRequest]):
-    """Process multiple GitHub repositories"""
-    results = []
-    for repo in repos:
-        success = await document_service.process_github_repo(str(repo.repo_url))
-        results.append(
-            ProcessResponse(
-                success=success,
-                message="Repository processed successfully" if success else "Failed to process repository"
-            )
+@router.post("/process-github")
+async def process_github_repo(request: ProcessGitHubRequest, api_key: str = Depends(get_openai_api_key)):
+    """Process a GitHub repository and store its documentation"""
+    try:
+        document_service = DocumentService(api_key=api_key)
+        result = await document_service.process_github_repo(request.repo_url)
+        return {"status": "success", "message": "Repository processed successfully", "data": result}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error processing repository: {str(e)}"
         )
-    return results 
+
+class ProcessMultipleRequest(BaseModel):
+    repo_urls: List[str]
+
+@router.post("/process-multiple")
+async def process_multiple_repos(request: ProcessMultipleRequest, api_key: str = Depends(get_openai_api_key)):
+    """Process multiple GitHub repositories"""
+    try:
+        document_service = DocumentService(api_key=api_key)
+        results = []
+        for url in request.repo_urls:
+            try:
+                result = await document_service.process_github_repo(url)
+                results.append({"url": url, "status": "success", "data": result})
+            except Exception as e:
+                results.append({"url": url, "status": "error", "error": str(e)})
+        return {"status": "success", "results": results}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error processing repositories: {str(e)}"
+        ) 

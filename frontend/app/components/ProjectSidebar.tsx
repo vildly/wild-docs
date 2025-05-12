@@ -3,15 +3,14 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import AddProjectModal from './AddProjectModal';
+import { fetchWithAuth, API_BASE_URL } from '../utils/api';
 
 interface Project {
-    name: string;
-    readmeUrl: string;
+    id: string;
+    title: string;
     description: string;
+    readmeUrl: string;
 }
-
-// Base URL for the backend API (without /api prefix)
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export default function ProjectSidebar() {
     const [isOpen, setIsOpen] = useState(true);
@@ -22,14 +21,13 @@ export default function ProjectSidebar() {
 
     const fetchProjects = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/projects`);
-            if (!response.ok) {
-                throw new Error('Failed to fetch projects');
-            }
+            setError(null);
+            const response = await fetchWithAuth(`${API_BASE_URL}/api/projects`);
             const data = await response.json();
             setProjects(data);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to load projects');
+            console.error('Error fetching projects:', err);
+            
         } finally {
             setLoading(false);
         }
@@ -39,26 +37,31 @@ export default function ProjectSidebar() {
         fetchProjects();
     }, []);
 
-    const handleAddProject = async (url: string) => {
+    const handleAddProject = async (repoUrl: string) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/documents/process-github`, {
+            setError(null);
+            await fetchWithAuth(`${API_BASE_URL}/api/documents/process-github`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ repo_url: url }),
+                body: JSON.stringify({ repo_url: repoUrl }),
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to add project');
-            }
-
-            // Refresh the projects list
             await fetchProjects();
-        } catch (err) {
-            throw new Error(err instanceof Error ? err.message : 'Failed to add project');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'An error occurred while adding the project');
         }
     };
+
+    if (error) {
+        return (
+            <div className="p-4 bg-red-50 dark:bg-red-900/10 rounded-lg">
+                <p className="text-red-600 dark:text-red-400">{error}</p>
+                {error.includes('API key') && (
+                    <p className="mt-2 text-sm text-red-500">
+                        Please set your OpenAI API key in the settings (top-right corner).
+                    </p>
+                )}
+            </div>
+        );
+    }
 
     return (
         <>
@@ -90,10 +93,6 @@ export default function ProjectSidebar() {
                             <div className="flex items-center justify-center py-8">
                                 <div className="w-6 h-6 border-2 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
                             </div>
-                        ) : error ? (
-                            <div className="p-4 bg-red-900/50 text-red-200 rounded-lg border border-red-800">
-                                {error}
-                            </div>
                         ) : projects.length === 0 ? (
                             <div className="text-center text-gray-400 py-8">
                                 No projects found
@@ -101,7 +100,7 @@ export default function ProjectSidebar() {
                         ) : (
                             projects.map((project) => (
                                 <motion.a
-                                    key={project.name}
+                                    key={project.title}
                                     href={project.readmeUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
@@ -109,7 +108,7 @@ export default function ProjectSidebar() {
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                 >
-                                    <h3 className="text-lg font-medium text-gray-200 mb-2">{project.name}</h3>
+                                    <h3 className="text-lg font-medium text-gray-200 mb-2">{project.title}</h3>
                                     <p className="text-sm text-gray-400">{project.description}</p>
                                 </motion.a>
                             ))
