@@ -3,6 +3,7 @@ from typing import List
 from app.services.document_service import DocumentService
 from pydantic import BaseModel, HttpUrl
 from app.api.deps import get_openai_api_key
+from app.core.config import settings
 
 router = APIRouter()
 document_service = DocumentService()
@@ -18,7 +19,7 @@ class ProcessGitHubRequest(BaseModel):
     repo_url: str
 
 @router.post("/process-github")
-async def process_github_repo(request: ProcessGitHubRequest, api_key: str = Depends(get_openai_api_key)):
+async def process_github_repo(request: ProcessGitHubRequest, api_key: str = settings.OPENAI_API_KEY):
     """Process a GitHub repository and store its documentation"""
     try:
         document_service = DocumentService(api_key=api_key)
@@ -34,7 +35,7 @@ class ProcessMultipleRequest(BaseModel):
     repo_urls: List[str]
 
 @router.post("/process-multiple")
-async def process_multiple_repos(request: ProcessMultipleRequest, api_key: str = Depends(get_openai_api_key)):
+async def process_multiple_repos(request: ProcessMultipleRequest, api_key: str = settings.OPENAI_API_KEY):
     """Process multiple GitHub repositories"""
     try:
         document_service = DocumentService(api_key=api_key)

@@ -10,7 +10,8 @@ RUN npm ci
 COPY . .
 
 # Build the application
-RUN npm run build
+#RUN npm run build
+RUN npm install
 
 # Production image
 FROM node:20-alpine AS runner
@@ -22,7 +23,7 @@ COPY --from=builder /app/next.config.ts ./
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/package*.json ./
-RUN npm ci --production
+#RUN npm ci --production
 
 # Set environment variables
 ENV NODE_ENV=development
@@ -32,4 +33,4 @@ ENV PORT=3000
 EXPOSE 3000
 
 # Start the application
-CMD ["npm", "start"] 
+CMD ["npm", "run", "dev"] 

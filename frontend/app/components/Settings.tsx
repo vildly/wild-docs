@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
+import { fetchWithAuth, API_BASE_URL } from '../utils/api';
 
 export default function Settings() {
   const [isOpen, setIsOpen] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const storedKey = localStorage.getItem('openai_api_key');
@@ -15,14 +17,28 @@ export default function Settings() {
     }
   }, []);
 
-  const handleSave = () => {
-    if (apiKey.startsWith('sk-') && apiKey.length > 20) {
-      localStorage.setItem('openai_api_key', apiKey);
-      setShowSuccess(true);
-      setTimeout(() => {
-        setShowSuccess(false);
-        setIsOpen(false);
-      }, 1500);
+  const handleSave = async () => {
+    try {
+      setError(null);
+      if (apiKey.startsWith('sk-') && apiKey.length > 20) {
+        // Store in backend
+        await fetchWithAuth(`${API_BASE_URL}/api/settings/api-key`, {
+          method: 'POST',
+          body: JSON.stringify({ api_key: apiKey }),
+        });
+
+        // Store in localStorage for frontend use
+        localStorage.setItem('openai_api_key', apiKey);
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          setIsOpen(false);
+        }, 1500);
+      } else {
+        setError('Invalid API key format. Must start with sk- and be at least 20 characters long.');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save API key');
     }
   };
 
@@ -56,6 +72,12 @@ export default function Settings() {
                 Your API key will be stored locally and never sent to our servers.
               </p>
             </div>
+
+            {error && (
+              <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
+                {error}
+              </div>
+            )}
 
             {showSuccess && (
               <div className="mb-4 p-2 bg-green-100 text-green-700 rounded">

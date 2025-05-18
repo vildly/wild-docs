@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.endpoints import documents, chat, projects
+from app.api.endpoints import documents, chat, projects, settings as settings_endpoints
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -21,6 +21,7 @@ app.add_middleware(
 app.include_router(documents.router, prefix=f"{settings.API_V1_STR}/documents", tags=["documents"])
 app.include_router(chat.router, prefix=f"{settings.API_V1_STR}/chat", tags=["chat"])
 app.include_router(projects.router, prefix=f"{settings.API_V1_STR}/projects", tags=["projects"])
+app.include_router(settings_endpoints.router, prefix=f"{settings.API_V1_STR}/settings", tags=["settings"])
 
 @app.get("/")
 async def root():

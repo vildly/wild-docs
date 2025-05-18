@@ -16,7 +16,11 @@ from agno.tools.reasoning import ReasoningTools
 logger = logging.getLogger(__name__)
 
 class ChatService:
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str = None):
+
+        if api_key is None:
+            api_key = "sk.."
+
         # Initialize OpenAI model for the agent
         self.model = OpenAIChat(
             api_key=api_key,

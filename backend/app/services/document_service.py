@@ -21,8 +21,8 @@ class DocumentService:
     def __init__(self, api_key = None):
         try:
 
-            if api_key is None:
-                api_key = "sk.."
+            api_key = settings.OPENAI_API_KEY
+
             # Initialize OpenAI model for the agent
             self.model = OpenAIChat(
                 api_key=api_key,

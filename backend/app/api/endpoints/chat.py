@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from app.services.chat_service import ChatService
 from typing import List, Dict, Optional
 from app.api.deps import get_openai_api_key
+from app.core.config import settings
 
 router = APIRouter()
 
@@ -34,7 +35,7 @@ class ChatRequest(BaseModel):
 def query_documents(request: QueryRequest):
     """Query the documents and get a response"""
     try:
-        api_key = get_openai_api_key()
+        api_key = settings.OPENAI_API_KEY
         chat_service = ChatService(api_key=api_key)
         result = chat_service.query_docs(request.query)
         return result
@@ -45,7 +46,7 @@ def query_documents(request: QueryRequest):
         )
 
 @router.post("/chat")
-async def chat(request: ChatRequest, api_key: str = Depends(get_openai_api_key)):
+async def chat(request: ChatRequest, api_key: str = settings.OPENAI_API_KEY):
     chat_service = ChatService(api_key=api_key)
     response = chat_service.query_docs(request.message)
     return response 

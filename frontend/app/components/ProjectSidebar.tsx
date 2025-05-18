@@ -24,6 +24,7 @@ export default function ProjectSidebar() {
             setError(null);
             const response = await fetchWithAuth(`${API_BASE_URL}/api/projects`);
             const data = await response.json();
+            console.log(data);
             setProjects(data);
         } catch (err) {
             console.error('Error fetching projects:', err);
